@@ -1,8 +1,13 @@
-import { Readable, Writable } from 'readable-stream';
+import { Readable, Writable, pipeline } from 'readable-stream';
 import { threadId } from 'worker_threads';
 import * as os from 'os';
 import { createSocket, Socket } from 'dgram';
 import { monitorEventLoopDelay, EventLoopDelayMonitor } from 'perf_hooks';
+import { Sample, CpuSample } from './common'
+
+function toms (time : [number,number]) {
+  return time[0] * 1e3 + time[1] * 1e-6
+}
 
 interface MonitorOptions {
   hz? : number
@@ -31,61 +36,6 @@ const kDefaultUDPOptions : FilledUDPOptions = {
   port: 8999
 };
 
-interface MemorySample {
-  arrayBuffers : number,
-  external : number,
-  heapTotal : number,
-  heapUsed : number,
-  rss : number
-}
-
-interface CpuSample {
-  model : string,
-  speed : number,
-  idle : number,
-  irq : number,
-  nice : number,
-  sys : number,
-  user : number
-}
-
-interface HistogramSample {
-  min: number,
-  max: number,
-  mean: number,
-  stddev: number,
-  p0_001: number,
-  p0_01: number,
-  p0_1: number,
-  p1: number,
-  p2_5: number,
-  p10: number,
-  p25: number,
-  p50: number,
-  p75: number,
-  p90: number,
-  p97_5: number,
-  p99: number,
-  p99_9: number,
-  p99_99: number,
-  p99_999: number
-}
-
-interface LoadAvgSample {
-  a1: number,
-  a5: number,
-  a15: number
-}
-
-interface Sample {
-  pid : number,
-  threadId : number,
-  memory : MemorySample,
-  cpus : CpuSample[],
-  loadAvg: LoadAvgSample,
-  eventLoop? : HistogramSample
-}
-
 type DestroyCallback = (err? : any) => void;
 type WriteCallback = (err? : any) => void;
 
@@ -93,6 +43,8 @@ class Monitor extends Readable {
   #options : MonitorOptions;
   #timer : any;
   #elmonitor? : EventLoopDelayMonitor;
+  #lastTS? : [number,number];
+  #lastCPUUsage? : NodeJS.CpuUsage;
 
   constructor (options : MonitorOptions = {}) {
     super({
@@ -113,6 +65,7 @@ class Monitor extends Readable {
     }
 
     this.#options = { ...kDefaultMonitorOptions, ...options };
+    this.#lastTS = process.hrtime();
 
     const delay = 1000 / (this.#options.hz || kDefaultMonitorOptions.hz);
     this.#timer = setInterval(() => this._sample(), delay);
@@ -121,6 +74,15 @@ class Monitor extends Readable {
       this.#elmonitor.enable();
     }
   }
+
+  _cpupct () {
+    const elapsed = toms(process.hrtime(this.#lastTS));
+    const usage = this.#lastCPUUsage = process.cpuUsage(this.#lastCPUUsage);
+    const total = ( usage.user + usage.system ) / 1000;
+    this.#lastTS = process.hrtime();
+    return total / elapsed;
+  }
+
 
   _sample () {
     const memory = process.memoryUsage();
@@ -137,6 +99,7 @@ class Monitor extends Readable {
         heapUsed: memory.heapUsed,
         rss: memory.rss
       },
+      cpu: this._cpupct(),
       cpus : cpus.map((cpu) : CpuSample => {
         return {
           model: cpu.model,
@@ -180,6 +143,7 @@ class Monitor extends Readable {
     }
 
     this.push(sample);
+    this.#lastTS = process.hrtime();
   }
 
   _destroy (err : any, callback : DestroyCallback) {
@@ -201,7 +165,6 @@ class Monitor extends Readable {
     return this.#options;
   }
 }
-
 class UDPWritable extends Writable {
   #options: UDPOptions;
   #socket: Socket;
@@ -257,7 +220,17 @@ class UDPWritable extends Writable {
   }
 }
 
-export = {
-  Monitor,
-  UDPWritable
-};
+function monitor() {
+  pipeline(
+    new Monitor({ hz: 1 }),
+    new UDPWritable(),
+    (err) => {
+      if (err) {
+        console.error('notare failure: ', err.message);
+      }
+    });
+}
+
+monitor();
+
+export = {};
