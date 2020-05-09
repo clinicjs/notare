@@ -3,13 +3,15 @@ import { threadId } from 'worker_threads';
 import * as os from 'os';
 import { createSocket, Socket } from 'dgram';
 import { monitorEventLoopDelay, EventLoopDelayMonitor } from 'perf_hooks';
-import { Sample, CpuSample } from './common'
+import { Sample, CpuSample, HandlesSample } from './common';
+import { createHook, AsyncHook } from 'async_hooks';
+
 import debuglog from 'debug';
 
 const debug = debuglog('notare');
 
 function toms (time : [number,number]) {
-  return time[0] * 1e3 + time[1] * 1e-6
+  return time[0] * 1e3 + time[1] * 1e-6;
 }
 
 interface MonitorOptions {
@@ -42,12 +44,69 @@ const kDefaultUDPOptions : FilledUDPOptions = {
 type DestroyCallback = (err? : any) => void;
 type WriteCallback = (err? : any) => void;
 
+class HandleTracker {
+  #types : Map<number, string> = new Map();
+  #counts : Map<string, number> = new Map();
+  #hook : AsyncHook;
+
+  constructor () {
+    const self : HandleTracker = this;
+    this.#hook = createHook({
+      init (id, type) {
+        self.#types.set(id, type);
+
+        if (!self.#counts.has(type)) {
+          self.#counts.set(type, 1);
+        } else {
+          self.#counts.set(type, (self.#counts.get(type) || 0) + 1);
+        }
+      },
+      destroy (id) {
+        const type : string | undefined = self.#types.get(id);
+        self.#types.delete(id);
+        if (type !== undefined) {
+          self.#counts.set(type, (self.#counts as any).get(type) - 1);
+          if (self.#counts.get(type) === 0) {
+            self.#counts.delete(type);
+          }
+        }
+      }
+    });
+    this.#hook.enable();
+  }
+
+  get counts() : HandlesSample {
+    const obj : HandlesSample = {
+      titles: [],
+      data: []
+    };
+    this.#counts.forEach((value : number, key : string) => {
+      // Filter out out notare's handles
+      if (key === 'UDPWRAP' ||
+          key === 'Timeout' ||
+          key === 'ELDHISTOGRAM') {
+        value--;
+      }
+      if (value > 0) {
+        obj.titles.push(key);
+        obj.data.push(value);
+      }
+    });
+    return obj;
+  }
+
+  destroy () {
+    this.#hook.disable();
+  }
+}
+
 class Monitor extends Readable {
   #options : MonitorOptions;
   #timer : any;
   #elmonitor? : EventLoopDelayMonitor;
   #lastTS? : [number,number];
   #lastCPUUsage? : NodeJS.CpuUsage;
+  #handles? : HandleTracker;
 
   constructor (options : MonitorOptions = {}) {
     super({
@@ -77,6 +136,10 @@ class Monitor extends Readable {
       this.#elmonitor.enable();
     }
 
+    if (process.env.NOTARE_HANDLES === '1') {
+      this.#handles = new HandleTracker();
+    }
+
     debug(`rate: ${this.#options.hz} samples per second`);
   }
 
@@ -87,7 +150,6 @@ class Monitor extends Readable {
     this.#lastTS = process.hrtime();
     return total / elapsed;
   }
-
 
   _sample () {
     const memory = process.memoryUsage();
@@ -123,6 +185,9 @@ class Monitor extends Readable {
       },
       eventLoop: undefined
     };
+    if (this.#handles !== undefined) {
+      sample.handles = this.#handles.counts;
+    }
     if (this.#elmonitor !== undefined) {
       sample.eventLoop = {
         min: this.#elmonitor.min,
@@ -155,6 +220,8 @@ class Monitor extends Readable {
     this.push(null);
     if (this.#elmonitor !== undefined)
       this.#elmonitor.disable();
+    if (this.#handles !== undefined)
+      this.#handles.destroy();
     if (this.#timer) {
       clearInterval(this.#timer);
       this.#timer = undefined;

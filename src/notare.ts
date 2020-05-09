@@ -76,6 +76,15 @@ const cpus = [
   {percent: 0, label: '15 Minute Load', color: 'green'} as any
 ];
 
+const handlesData = {
+  title: 'Handles',
+  x: [],
+  y: [],
+  style: {
+    line: 'green'
+  }
+};
+
 function memoryPage(screen : any) {
   screen.append(memoryLine);
   memoryLine.setData([rss, heapTotal, heapUsed]);
@@ -89,6 +98,11 @@ function eventLoopPage(screen : any) {
 function cpuPage(screen : any) {
   screen.append(cpuDonuts);
   cpuDonuts.setData(cpus);
+}
+
+function handlesPage(screen : any) {
+  screen.append(handlesLine);
+  handlesLine.setData([handlesData]);
 }
 
 function getDonutColor(sample : number) {
@@ -137,6 +151,11 @@ function plot (sample : Sample) {
   cpus[3].percent = Math.floor(sample.loadAvg.a15 * 100);
   cpus[3].color = getDonutColor(cpus[3].percent);
 
+  if (sample.handles !== undefined) {
+    (handlesData as any).x = sample.handles.titles;
+    (handlesData as any).y = sample.handles.data;
+  }
+
   switch (carousel.currPage) {
     case 0:
       memoryLine.setData([rss, heapTotal, heapUsed]);
@@ -146,6 +165,9 @@ function plot (sample : Sample) {
       break;
     case 2:
       cpuDonuts.setData(cpus);
+      break;
+    case 3:
+      handlesLine.setData([handlesData]);
       break;
   }
 
@@ -181,8 +203,17 @@ var cpuDonuts = contrib.donut({
   data: cpus
 });
 
+const handlesLine = contrib.line({
+  xLabelPadding: 3,
+  xPadding: 5,
+  label: 'Handles',
+  showLegend: true,
+  wholeNumbersOnly: true,
+  legend: { width: 12 }
+} as any);
+
 const carousel = new (contrib as any).carousel(
-  [memoryPage, eventLoopPage, cpuPage],
+  [memoryPage, eventLoopPage, cpuPage, handlesPage],
   {
     screen: screen,
     interval: 0,

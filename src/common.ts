@@ -46,6 +46,11 @@ export interface LoadAvgSample {
   a15: number
 }
 
+export interface HandlesSample {
+  titles: string[],
+  data: number[]
+}
+
 export interface Sample {
   pid : number,
   threadId : number,
@@ -53,5 +58,6 @@ export interface Sample {
   cpu : number,
   cpus : CpuSample[],
   loadAvg: LoadAvgSample,
-  eventLoop? : HistogramSample
+  eventLoop? : HistogramSample,
+  handles?: HandlesSample
 }
