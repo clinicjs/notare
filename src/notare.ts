@@ -21,7 +21,10 @@ server.on('listening', () => {
   console.log('notare listening...');
 });
 
-server.bind(8999);
+server.bind({
+  address: process.env.NOTARE_HOST || undefined,
+  port: parseInt(process.env.NOTARE_PORT || '') || 8999
+});
 
 
 function empty (num : number) {

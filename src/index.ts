@@ -35,8 +35,8 @@ const kDefaultMonitorOptions : FilledMonitorOptions = {
 };
 
 const kDefaultUDPOptions : FilledUDPOptions = {
-  address: 'localhost',
-  port: 8999
+  address: process.env.NOTARE_HOST || 'localhost',
+  port: parseInt(process.env.NOTARE_PORT || '') || 8999
 };
 
 type DestroyCallback = (err? : any) => void;
