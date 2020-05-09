@@ -4,6 +4,9 @@ import * as os from 'os';
 import { createSocket, Socket } from 'dgram';
 import { monitorEventLoopDelay, EventLoopDelayMonitor } from 'perf_hooks';
 import { Sample, CpuSample } from './common'
+import debuglog from 'debug';
+
+const debug = debuglog('notare');
 
 function toms (time : [number,number]) {
   return time[0] * 1e3 + time[1] * 1e-6
@@ -28,7 +31,7 @@ interface FilledUDPOptions extends UDPOptions {
 }
 
 const kDefaultMonitorOptions : FilledMonitorOptions = {
-  hz : 49
+  hz : parseInt(process.env.NOTARE_HZ || '0') || 2
 };
 
 const kDefaultUDPOptions : FilledUDPOptions = {
@@ -73,6 +76,8 @@ class Monitor extends Readable {
       this.#elmonitor = monitorEventLoopDelay({ resolution: delay });
       this.#elmonitor.enable();
     }
+
+    debug(`rate: ${this.#options.hz} samples per second`);
   }
 
   _cpupct () {
@@ -222,7 +227,7 @@ class UDPWritable extends Writable {
 
 function monitor() {
   pipeline(
-    new Monitor({ hz: 1 }),
+    new Monitor(),
     new UDPWritable(),
     (err) => {
       if (err) {

@@ -57,11 +57,14 @@ const heapUsed = {
   }
 }
 
-const delays = {
-  titles: [
-    '10', '25', '50', '75', '90', '97.5', '99', '99.9', '99.99', '99.999'],
-  data: []
-};
+const loopDelays = {
+  title: 'Loop Delay',
+  x: ['10', '25', '50', '75', '90', '97.5', '99', '99.9', '99.99', '99.999'],
+  y: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  style: {
+    line: 'green'
+  }
+}
 
 const cpus = [
   {percent: 0, label: 'CPU', color: 'green'} as any,
@@ -76,8 +79,8 @@ function memoryPage(screen : any) {
 }
 
 function eventLoopPage(screen : any) {
-  screen.append(eventLoopBar);
-  eventLoopBar.setData(delays);
+  screen.append(eventLoopLine);
+  eventLoopLine.setData([loopDelays]);
 }
 
 function cpuPage(screen : any) {
@@ -103,7 +106,9 @@ function plot (sample : Sample) {
   heapUsed.y.push(sample.memory.heapUsed / 1024 / 1024)
 
   if (sample.eventLoop !== undefined) {
-    delays.data = [
+    (eventLoopLine as any).options.minY = sample.eventLoop.min;
+    (eventLoopLine as any).options.maxX = sample.eventLoop.max;
+    loopDelays.y = [
       sample.eventLoop.p10,
       sample.eventLoop.p25,
       sample.eventLoop.p50,
@@ -134,7 +139,7 @@ function plot (sample : Sample) {
       memoryLine.setData([rss, heapTotal, heapUsed]);
       break;
     case 1:
-      eventLoopBar.setData(delays);
+      eventLoopLine.setData([loopDelays]);
       break;
     case 2:
       cpuDonuts.setData(cpus);
@@ -156,13 +161,13 @@ const memoryLine = contrib.line({
   legend: { width: 12 }
 } as any)
 
-const eventLoopBar = contrib.bar({
-  label: 'Loop Delay Delay',
-  barWidth: 4,
-  barSpacing: 6,
-  xOffset: 0,
-  maxHeight:9
-});
+const eventLoopLine = contrib.line({
+  xLabelPadding: 3,
+  xPadding: 5,
+  label: 'Event Loop Delay',
+  showLegend: false,
+  legend: { width: 12 }
+} as any);
 
 var cpuDonuts = contrib.donut({
   label: 'CPU Load',
