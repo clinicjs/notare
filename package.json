@@ -1,6 +1,6 @@
 {
   "name": "notare",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node.js Performance Observer",
   "keywords": [
     "performance",
