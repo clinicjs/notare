@@ -1,8 +1,11 @@
 {
   "name": "notare",
   "version": "1.0.0",
-  "description": "Observer...",
-  "keywords": [],
+  "description": "Node.js Performance Observer",
+  "keywords": [
+    "performance",
+    "observe"
+  ],
   "author": "James M Snell <jasnell@gmail.com>",
   "license": "MIT",
   "bin": {
@@ -18,6 +21,8 @@
   "devDependencies": {
     "@types/node": "^13.13.5",
     "@types/readable-stream": "^2.3.5",
+    "@types/blessed": "^0.1.17",
+    "@types/debug": "^4.1.5",
     "@typescript-eslint/eslint-plugin": "^2.31.0",
     "@typescript-eslint/parser": "^2.31.0",
     "snazzy": "^8.0.0",
@@ -46,8 +51,6 @@
     ]
   },
   "dependencies": {
-    "@types/blessed": "^0.1.17",
-    "@types/debug": "^4.1.5",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.20",
     "debug": "^4.1.1",
