@@ -13,8 +13,6 @@
   "scripts": {
     "build": "tsc",
     "lint": "standardx \"**/*.{ts,mjs,js,cjs}\" | snazzy",
-    "test": "npm run lint && npm run build && npm run test-only",
-    "test-only": "tap",
     "prepack": "npm run build"
   },
   "devDependencies": {
