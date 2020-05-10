@@ -27,13 +27,13 @@ $ notare
 
 Use the keyboard arrow keys to navigate screens.
 
-![Memory](https://github.com/jasnell/notare/blob/master/docs/images/notare_memory.png)
+![Memory](https://github.com/jasnell/notare/blob/master/docs/images/notare_memory.png?raw=true)
 
-![Event Loop Delay](https://github.com/jasnell/notare/blob/master/docs/images/notare_eld.png)
+![Event Loop Delay](https://github.com/jasnell/notare/blob/master/docs/images/notare_eld.png?raw=true)
 
-![CPU](https://github.com/jasnell/notare/blob/master/docs/images/notare_cpu.png)
+![CPU](https://github.com/jasnell/notare/blob/master/docs/images/notare_cpu.png?raw=true)
 
-![Handles](https://github.com/jasnell/notare/blob/master/docs/images/notare_handles.png)
+![Handles](https://github.com/jasnell/notare/blob/master/docs/images/notare_handles.png?raw=true)
 
 ## Configuration via Environment Variables
 
