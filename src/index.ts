@@ -269,6 +269,7 @@ class UDPWritable extends Writable {
 
     this.#options = { ...kDefaultUDPOptions, ...options };
     this.#socket = createSocket('udp4');
+    this.#socket.unref();
   }
 
   _write (chunk : any, _ : any, callback : WriteCallback) {
