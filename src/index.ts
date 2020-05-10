@@ -135,6 +135,7 @@ class Monitor extends Readable {
       this.#elmonitor = monitorEventLoopDelay({ resolution: delay });
       this.#elmonitor.enable();
     }
+    this.#timer.unref();
 
     if (process.env.NOTARE_HANDLES === '1') {
       this.#handles = new HandleTracker();
