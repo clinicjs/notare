@@ -3,7 +3,7 @@
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 import { createSocket } from 'dgram';
-import { Sample } from './common'
+import { Sample } from './common';
 
 const server = createSocket('udp4');
 
@@ -13,7 +13,7 @@ server.on('error', (err) => {
 });
 
 server.on('message', (msg) => {
-  const data : Sample = JSON.parse(msg.toString()) ;
+  const data : Sample = JSON.parse(msg.toString());
   plot(data);
 });
 
@@ -26,13 +26,12 @@ server.bind({
   port: parseInt(process.env.NOTARE_PORT || '') || 8999
 });
 
-
 function empty (num : number) {
-  let result = new Array(num)
+  const result = new Array(num);
   for (let i = 0; i < num; i++) {
     result[i] = 0;
   }
-  return result
+  return result;
 }
 
 const rss = {
@@ -42,7 +41,7 @@ const rss = {
   style: {
     line: 'red'
   }
-}
+};
 const heapTotal = {
   title: 'heapTotal',
   x: empty(80),
@@ -50,7 +49,7 @@ const heapTotal = {
   style: {
     line: 'yellow'
   }
-}
+};
 const heapUsed = {
   title: 'heapUsed',
   x: empty(80),
@@ -58,7 +57,7 @@ const heapUsed = {
   style: {
     line: 'green'
   }
-}
+};
 
 const loopDelays = {
   title: 'Loop Delay',
@@ -67,13 +66,13 @@ const loopDelays = {
   style: {
     line: 'green'
   }
-}
+};
 
 const cpus = [
-  {percent: 0, label: 'CPU', color: 'green'} as any,
-  {percent: 0, label: '1 Minute Load', color: 'green'} as any,
-  {percent: 0, label: '5 Minute Load', color: 'green'} as any,
-  {percent: 0, label: '15 Minute Load', color: 'green'} as any
+  { percent: 0, label: 'CPU', color: 'green' } as any,
+  { percent: 0, label: '1 Minute Load', color: 'green' } as any,
+  { percent: 0, label: '5 Minute Load', color: 'green' } as any,
+  { percent: 0, label: '15 Minute Load', color: 'green' } as any
 ];
 
 const handlesData = {
@@ -85,27 +84,27 @@ const handlesData = {
   }
 };
 
-function memoryPage(screen : any) {
+function memoryPage (screen : any) {
   screen.append(memoryLine);
   memoryLine.setData([rss, heapTotal, heapUsed]);
 }
 
-function eventLoopPage(screen : any) {
+function eventLoopPage (screen : any) {
   screen.append(eventLoopLine);
   eventLoopLine.setData([loopDelays]);
 }
 
-function cpuPage(screen : any) {
+function cpuPage (screen : any) {
   screen.append(cpuDonuts);
   cpuDonuts.setData(cpus);
 }
 
-function handlesPage(screen : any) {
+function handlesPage (screen : any) {
   screen.append(handlesLine);
   handlesLine.setData([handlesData]);
 }
 
-function getDonutColor(sample : number) {
+function getDonutColor (sample : number) {
   if (sample < 50) {
     return 'green';
   } else if (sample >= 50 && sample < 90) {
@@ -115,12 +114,12 @@ function getDonutColor(sample : number) {
 }
 
 function plot (sample : Sample) {
-  rss.y.shift()
-  rss.y.push(sample.memory.rss / 1024 / 1024)
-  heapTotal.y.shift()
-  heapTotal.y.push(sample.memory.heapTotal / 1024 / 1024)
-  heapUsed.y.shift()
-  heapUsed.y.push(sample.memory.heapUsed / 1024 / 1024)
+  rss.y.shift();
+  rss.y.push(sample.memory.rss / 1024 / 1024);
+  heapTotal.y.shift();
+  heapTotal.y.push(sample.memory.heapTotal / 1024 / 1024);
+  heapUsed.y.shift();
+  heapUsed.y.push(sample.memory.heapUsed / 1024 / 1024);
 
   if (sample.eventLoop !== undefined) {
     (eventLoopLine as any).options.minY = sample.eventLoop.min;
@@ -171,7 +170,7 @@ function plot (sample : Sample) {
       break;
   }
 
-  screen.render()
+  screen.render();
 }
 
 const screen = blessed.screen();
@@ -184,7 +183,7 @@ const memoryLine = contrib.line({
   label: 'Memory (MB)',
   showLegend: true,
   legend: { width: 12 }
-} as any)
+} as any);
 
 const eventLoopLine = contrib.line({
   xLabelPadding: 3,
@@ -212,7 +211,7 @@ const handlesLine = contrib.line({
   legend: { width: 12 }
 } as any);
 
-const carousel = new (contrib as any).carousel(
+const carousel = new (contrib as any).carousel(  // eslint-disable-line
   [memoryPage, eventLoopPage, cpuPage, handlesPage],
   {
     screen: screen,
@@ -221,7 +220,6 @@ const carousel = new (contrib as any).carousel(
   });
 carousel.start();
 
-
 screen.key(['escape', 'q', 'C-c'], () => {
-  return process.exit(0)
-})
+  return process.exit(0);
+});

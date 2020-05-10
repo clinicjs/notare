@@ -10,7 +10,7 @@ import debuglog from 'debug';
 
 const debug = debuglog('notare');
 
-function toms (time : [number,number]) {
+function toms (time : [number, number]) {
   return time[0] * 1e3 + time[1] * 1e-6;
 }
 
@@ -33,7 +33,7 @@ interface FilledUDPOptions extends UDPOptions {
 }
 
 const kDefaultMonitorOptions : FilledMonitorOptions = {
-  hz : parseInt(process.env.NOTARE_HZ || '0') || 2
+  hz: parseInt(process.env.NOTARE_HZ || '0') || 2
 };
 
 const kDefaultUDPOptions : FilledUDPOptions = {
@@ -75,7 +75,7 @@ class HandleTracker {
     this.#hook.enable();
   }
 
-  get counts() : HandlesSample {
+  get counts () : HandlesSample {
     const obj : HandlesSample = {
       titles: [],
       data: []
@@ -104,7 +104,7 @@ class Monitor extends Readable {
   #options : MonitorOptions;
   #timer : any;
   #elmonitor? : EventLoopDelayMonitor;
-  #lastTS? : [number,number];
+  #lastTS? : [number, number];
   #lastCPUUsage? : NodeJS.CpuUsage;
   #handles? : HandleTracker;
 
@@ -146,7 +146,7 @@ class Monitor extends Readable {
   _cpupct () {
     const elapsed = toms(process.hrtime(this.#lastTS));
     const usage = this.#lastCPUUsage = process.cpuUsage(this.#lastCPUUsage);
-    const total = ( usage.user + usage.system ) / 1000;
+    const total = (usage.user + usage.system) / 1000;
     this.#lastTS = process.hrtime();
     return total / elapsed;
   }
@@ -167,7 +167,7 @@ class Monitor extends Readable {
         rss: memory.rss
       },
       cpu: this._cpupct(),
-      cpus : cpus.map((cpu) : CpuSample => {
+      cpus: cpus.map((cpu) : CpuSample => {
         return {
           model: cpu.model,
           speed: cpu.speed,
@@ -209,7 +209,7 @@ class Monitor extends Readable {
         p99_9: this.#elmonitor.percentile(99.9),
         p99_99: this.#elmonitor.percentile(99.99),
         p99_999: this.#elmonitor.percentile(99.999)
-      }
+      };
     }
 
     this.push(sample);
@@ -218,10 +218,12 @@ class Monitor extends Readable {
 
   _destroy (err : any, callback : DestroyCallback) {
     this.push(null);
-    if (this.#elmonitor !== undefined)
+    if (this.#elmonitor !== undefined) {
       this.#elmonitor.disable();
-    if (this.#handles !== undefined)
+    }
+    if (this.#handles !== undefined) {
       this.#handles.destroy();
+    }
     if (this.#timer) {
       clearInterval(this.#timer);
       this.#timer = undefined;
@@ -233,7 +235,7 @@ class Monitor extends Readable {
     // Nothing to do here
   }
 
-  get options() : MonitorOptions {
+  get options () : MonitorOptions {
     return this.#options;
   }
 }
@@ -287,12 +289,12 @@ class UDPWritable extends Writable {
     callback(err);
   }
 
-  get options() : UDPOptions {
+  get options () : UDPOptions {
     return this.#options;
   }
 }
 
-function monitor() {
+function monitor () {
   pipeline(
     new Monitor(),
     new UDPWritable(),

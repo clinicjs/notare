@@ -1,5 +1,3 @@
-
-
 export interface MemorySample {
   arrayBuffers : number,
   external : number,
@@ -23,21 +21,21 @@ export interface HistogramSample {
   max: number,
   mean: number,
   stddev: number,
-  p0_001: number,
-  p0_01: number,
-  p0_1: number,
-  p1: number,
-  p2_5: number,
-  p10: number,
-  p25: number,
-  p50: number,
-  p75: number,
-  p90: number,
-  p97_5: number,
-  p99: number,
-  p99_9: number,
-  p99_99: number,
-  p99_999: number
+  p0_001: number,  // eslint-disable-line
+  p0_01: number,   // eslint-disable-line
+  p0_1: number,    // eslint-disable-line
+  p1: number,      // eslint-disable-line
+  p2_5: number,    // eslint-disable-line
+  p10: number,     // eslint-disable-line
+  p25: number,     // eslint-disable-line
+  p50: number,     // eslint-disable-line
+  p75: number,     // eslint-disable-line
+  p90: number,     // eslint-disable-line
+  p97_5: number,   // eslint-disable-line
+  p99: number,     // eslint-disable-line
+  p99_9: number,   // eslint-disable-line
+  p99_99: number,  // eslint-disable-line
+  p99_999: number  // eslint-disable-line
 }
 
 export interface LoadAvgSample {
