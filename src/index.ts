@@ -10,10 +10,6 @@ import debuglog from 'debug';
 
 const debug = debuglog('notare');
 
-function toms (time : [number, number]) {
-  return time[0] * 1e3 + time[1] * 1e-6;
-}
-
 interface MonitorOptions {
   hz? : number
 }
@@ -104,7 +100,7 @@ class Monitor extends Readable {
   #options : MonitorOptions;
   #timer : any;
   #elmonitor? : EventLoopDelayMonitor;
-  #lastTS? : [number, number];
+  #lastTS : bigint;
   #lastCPUUsage? : NodeJS.CpuUsage;
   #handles? : HandleTracker;
 
@@ -127,9 +123,10 @@ class Monitor extends Readable {
     }
 
     this.#options = { ...kDefaultMonitorOptions, ...options };
-    this.#lastTS = process.hrtime();
+    this.#lastTS = process.hrtime.bigint();
 
-    const delay = 1000 / (this.#options.hz || kDefaultMonitorOptions.hz);
+    const delay =
+        Math.floor(1000 / (this.#options.hz || kDefaultMonitorOptions.hz));
     this.#timer = setInterval(() => this._sample(), delay);
     if (monitorEventLoopDelay !== undefined) {
       this.#elmonitor = monitorEventLoopDelay({ resolution: delay });
@@ -145,10 +142,11 @@ class Monitor extends Readable {
   }
 
   _cpupct () {
-    const elapsed = toms(process.hrtime(this.#lastTS));
+    const now = process.hrtime.bigint();
+    const elapsed = parseInt((now - this.#lastTS).toString()) / 1e6;
     const usage = this.#lastCPUUsage = process.cpuUsage(this.#lastCPUUsage);
     const total = (usage.user + usage.system) / 1000;
-    this.#lastTS = process.hrtime();
+    this.#lastTS = now;
     return total / elapsed;
   }
 
@@ -214,7 +212,6 @@ class Monitor extends Readable {
     }
 
     this.push(sample);
-    this.#lastTS = process.hrtime();
   }
 
   _destroy (err : any, callback : DestroyCallback) {
