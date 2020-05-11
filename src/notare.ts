@@ -3,7 +3,7 @@
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 import { createSocket } from 'dgram';
-import { Sample } from './common';
+import { Sample } from 'notare-monitor';
 
 const server = createSocket('udp4');
 
