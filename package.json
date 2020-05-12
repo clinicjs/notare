@@ -18,6 +18,10 @@
     "lint": "standardx \"**/*.{ts,mjs,js,cjs}\" | snazzy",
     "prepack": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasnell/notare"
+  },
   "devDependencies": {
     "@types/node": "^13.13.5",
     "@types/readable-stream": "^2.3.5",
