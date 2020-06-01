@@ -14,7 +14,11 @@ server.on('error', (err) => {
 
 server.on('message', (msg) => {
   const data : Sample = JSON.parse(msg.toString());
-  plot(data);
+  // Only plot main thread data
+  // TODO(@jasnell): Include worker thread data in the plot
+  if (data.threadId === 0) {
+    plot(data);
+  }
 });
 
 server.on('listening', () => {
