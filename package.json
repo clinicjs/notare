@@ -1,6 +1,6 @@
 {
   "name": "notare",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Node.js Performance Observer",
   "keywords": [
     "performance",
@@ -23,16 +23,16 @@
     "url": "git+https://github.com/jasnell/notare"
   },
   "devDependencies": {
-    "@types/node": "^13.13.5",
-    "@types/readable-stream": "^2.3.5",
     "@types/blessed": "^0.1.17",
     "@types/debug": "^4.1.5",
-    "@typescript-eslint/eslint-plugin": "^2.31.0",
-    "@typescript-eslint/parser": "^2.31.0",
+    "@types/node": "^14.0.6",
+    "@types/readable-stream": "^2.3.6",
+    "@typescript-eslint/eslint-plugin": "^3.1.0",
+    "@typescript-eslint/parser": "^3.1.0",
     "snazzy": "^8.0.0",
     "standardx": "^5.0.0",
     "tap": "^14.10.7",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   },
   "eslintConfig": {
     "rules": {
@@ -57,7 +57,7 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.20",
-    "notare-monitor": "^1.0.0",
+    "notare-monitor": "^1.0.2",
     "readable-stream": "^3.6.0"
   }
 }
