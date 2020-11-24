@@ -1,4 +1,4 @@
-import { Writable, pipeline } from 'readable-stream';
+import { Writable, pipeline } from 'stream';
 import { Monitor } from 'notare-monitor';
 import { createSocket, Socket } from 'dgram';
 
