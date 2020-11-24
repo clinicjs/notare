@@ -197,7 +197,6 @@ function plot (sample : Sample) {
       sample.loopUtilization.histogram.p99_99,
       sample.loopUtilization.histogram.p99_999
     ] as any;
-
   } else {
     loopUtil.y.shift();
     loopUtil.y.push(0);
