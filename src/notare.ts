@@ -96,6 +96,20 @@ const handlesData = {
   }
 };
 
+const gcDurationData = {
+  title: 'GC Duration',
+  x: ['10', '25', '50', '75', '90', '97.5', '99', '99.9', '99.99', '99.999'],
+  y: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  style: {
+    line: 'green'
+  }
+};
+
+const gcCountData = {
+  titles: ['Major', 'Minor', 'Incremental', 'WeakCB'],
+  data: [0, 0, 0, 0]
+};
+
 function memoryPage (screen : any) {
   screen.append(memoryLine);
   memoryLine.setData([rss, heapTotal, heapUsed]);
@@ -119,6 +133,16 @@ function cpuPage (screen : any) {
 function handlesPage (screen : any) {
   screen.append(handlesLine);
   handlesLine.setData([handlesData]);
+}
+
+function gcCountsPage (screen : any) {
+  screen.append(gcCounts);
+  gcCounts.setData(gcCountData);
+}
+
+function gcDurationsPage (screen : any) {
+  screen.append(gcDuration);
+  gcDuration.setData([gcDurationData]);
 }
 
 function getDonutColor (sample : number) {
@@ -177,6 +201,27 @@ function plot (sample : Sample) {
     (handlesData as any).y = sample.handles.data;
   }
 
+  if (sample.gc !== undefined) {
+    gcCountData.data[0] = sample.gc.major;
+    gcCountData.data[1] = sample.gc.minor;
+    gcCountData.data[2] = sample.gc.incremental;
+    gcCountData.data[3] = sample.gc.weakcbs;
+    (gcDuration as any).options.minY = sample.gc.duration.min;
+    (gcDuration as any).options.maxX = sample.gc.duration.max;
+    gcDurationData.y = [
+      sample.gc.duration.p10,
+      sample.gc.duration.p25,
+      sample.gc.duration.p50,
+      sample.gc.duration.p75,
+      sample.gc.duration.p90,
+      sample.gc.duration.p97_5,
+      sample.gc.duration.p99,
+      sample.gc.duration.p99_9,
+      sample.gc.duration.p99_99,
+      sample.gc.duration.p99_999
+    ] as any;
+  }
+
   switch (carousel.currPage) {
     case 0:
       memoryLine.setData([rss, heapTotal, heapUsed]);
@@ -192,6 +237,12 @@ function plot (sample : Sample) {
       break;
     case 4:
       handlesLine.setData([handlesData]);
+      break;
+    case 5:
+      gcCounts.setData(gcCountData);
+      break;
+    case 6:
+      gcDuration.setData([gcDurationData]);
       break;
   }
 
@@ -244,13 +295,31 @@ const handlesLine = contrib.line({
   legend: { width: 12 }
 } as any);
 
+const gcCounts = contrib.bar({
+  label: 'Garbage Collection Counts',
+  barWith: 4,
+  barSpacing: 6,
+  xOffset: 0,
+  maxHeight: 9
+} as any);
+
+const gcDuration = contrib.line({
+  xLabelPadding: 3,
+  xPadding: 5,
+  label: 'Garbage Collection Duration',
+  showLegend: false,
+  legend: { width: 12 }
+} as any);
+
 const carousel = new (contrib as any).carousel(  // eslint-disable-line
   [
     memoryPage,
     loopUtilizationPage,
     eventLoopPage,
     cpuPage,
-    handlesPage
+    handlesPage,
+    gcCountsPage,
+    gcDurationsPage
   ],
   {
     screen: screen,

@@ -1,6 +1,6 @@
 {
   "name": "notare",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Node.js Performance Observer",
   "keywords": [
     "performance",
@@ -58,6 +58,6 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.20",
-    "notare-monitor": "^2.0.1"
+    "notare-monitor": "^2.1.2"
   }
 }
