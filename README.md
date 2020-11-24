@@ -39,7 +39,8 @@ Use the keyboard arrow keys to navigate screens.
 
 * `NOTARE_HZ=n` where `n` is the number of samples per second (default `2`)
 * `NOTARE_PORT=n` where `n` is the UDP port notare should use (default `8999`)
-* `NOTARE_HIST=n` where `n` is the UDP hostname (default `localhost`)
+* `NOTARE_HOST=n` where `n` is the UDP hostname (default `localhost`)
 * `NOTARE_HANDLES=1` instructs notare to monitor async hook handle counts
+* `NOTARE_GC=1` instructs notare to monitor garbage collection
   (disabled by default)
 
