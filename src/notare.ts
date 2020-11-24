@@ -16,7 +16,7 @@ server.on('message', (msg) => {
   const data : Sample = JSON.parse(msg.toString());
   // Only plot main thread data
   // TODO(@jasnell): Include worker thread data in the plot
-  if (data.threadId === 0) {
+  if (data.isMainThread) {
     plot(data);
   }
 });
@@ -62,6 +62,14 @@ const heapUsed = {
     line: 'green'
   }
 };
+const loopUtil = {
+  title: 'loopUtilization',
+  x: empty(80),
+  y: empty(80),
+  style: {
+    line: 'white'
+  }
+};
 
 const loopDelays = {
   title: 'Loop Delay',
@@ -98,6 +106,11 @@ function eventLoopPage (screen : any) {
   eventLoopLine.setData([loopDelays]);
 }
 
+function loopUtilizationPage (screen : any) {
+  screen.append(loopUtilLine);
+  loopUtilLine.setData([loopUtil]);
+}
+
 function cpuPage (screen : any) {
   screen.append(cpuDonuts);
   cpuDonuts.setData(cpus);
@@ -122,8 +135,13 @@ function plot (sample : Sample) {
   rss.y.push(sample.memory.rss / 1024 / 1024);
   heapTotal.y.shift();
   heapTotal.y.push(sample.memory.heapTotal / 1024 / 1024);
+
   heapUsed.y.shift();
   heapUsed.y.push(sample.memory.heapUsed / 1024 / 1024);
+
+  loopUtil.y.shift();
+  loopUtil.y.push(
+    sample.loopUtilization ? sample.loopUtilization.utilization : 0);
 
   if (sample.eventLoop !== undefined) {
     (eventLoopLine as any).options.minY = sample.eventLoop.min;
@@ -164,12 +182,15 @@ function plot (sample : Sample) {
       memoryLine.setData([rss, heapTotal, heapUsed]);
       break;
     case 1:
-      eventLoopLine.setData([loopDelays]);
+      loopUtilLine.setData([loopUtil]);
       break;
     case 2:
-      cpuDonuts.setData(cpus);
+      eventLoopLine.setData([loopDelays]);
       break;
     case 3:
+      cpuDonuts.setData(cpus);
+      break;
+    case 4:
       handlesLine.setData([handlesData]);
       break;
   }
@@ -197,7 +218,15 @@ const eventLoopLine = contrib.line({
   legend: { width: 12 }
 } as any);
 
-var cpuDonuts = contrib.donut({
+const loopUtilLine = contrib.line({
+  xLabelPadding: 3,
+  xPadding: 5,
+  label: 'Event Loop Utilization',
+  showLegend: false,
+  legend: { width: 12 }
+} as any);
+
+const cpuDonuts = contrib.donut({
   label: 'CPU Load',
   radius: 8,
   arcWidth: 3,
@@ -216,7 +245,13 @@ const handlesLine = contrib.line({
 } as any);
 
 const carousel = new (contrib as any).carousel(  // eslint-disable-line
-  [memoryPage, eventLoopPage, cpuPage, handlesPage],
+  [
+    memoryPage,
+    loopUtilizationPage,
+    eventLoopPage,
+    cpuPage,
+    handlesPage
+  ],
   {
     screen: screen,
     interval: 0,
