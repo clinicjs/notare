@@ -71,6 +71,15 @@ const loopUtil = {
   }
 };
 
+const loopUtilHistogram = {
+  title: 'loopUtilizationHisgram',
+  x: ['10', '25', '50', '75', '90', '97.5', '99', '99.9', '99.99', '99.999'],
+  y: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  style: {
+    line: 'green'
+  }
+};
+
 const loopDelays = {
   title: 'Loop Delay',
   x: ['10', '25', '50', '75', '90', '97.5', '99', '99.9', '99.99', '99.999'],
@@ -125,6 +134,11 @@ function loopUtilizationPage (screen : any) {
   loopUtilLine.setData([loopUtil]);
 }
 
+function loopUtilizationHistogramPage (screen : any) {
+  screen.append(loopUtilHistogramLine);
+  loopUtilHistogramLine.setData([loopUtilHistogram]);
+}
+
 function cpuPage (screen : any) {
   screen.append(cpuDonuts);
   cpuDonuts.setData(cpus);
@@ -163,9 +177,31 @@ function plot (sample : Sample) {
   heapUsed.y.shift();
   heapUsed.y.push(sample.memory.heapUsed / 1024 / 1024);
 
-  loopUtil.y.shift();
-  loopUtil.y.push(
-    sample.loopUtilization ? sample.loopUtilization.utilization : 0);
+  if (sample.loopUtilization !== undefined) {
+    loopUtil.y.shift();
+    loopUtil.y.push(sample.loopUtilization.utilization);
+
+    (loopUtilHistogramLine as any).options.minY =
+      sample.loopUtilization.histogram.min;
+    (loopUtilHistogramLine as any).options.maxX =
+      sample.loopUtilization.histogram.max;
+    loopUtilHistogram.y = [
+      sample.loopUtilization.histogram.p10,
+      sample.loopUtilization.histogram.p25,
+      sample.loopUtilization.histogram.p50,
+      sample.loopUtilization.histogram.p75,
+      sample.loopUtilization.histogram.p90,
+      sample.loopUtilization.histogram.p97_5,
+      sample.loopUtilization.histogram.p99,
+      sample.loopUtilization.histogram.p99_9,
+      sample.loopUtilization.histogram.p99_99,
+      sample.loopUtilization.histogram.p99_999
+    ] as any;
+
+  } else {
+    loopUtil.y.shift();
+    loopUtil.y.push(0);
+  }
 
   if (sample.eventLoop !== undefined) {
     (eventLoopLine as any).options.minY = sample.eventLoop.min;
@@ -230,18 +266,21 @@ function plot (sample : Sample) {
       loopUtilLine.setData([loopUtil]);
       break;
     case 2:
-      eventLoopLine.setData([loopDelays]);
+      loopUtilHistogramLine.setData([loopUtilHistogram]);
       break;
     case 3:
-      cpuDonuts.setData(cpus);
+      eventLoopLine.setData([loopDelays]);
       break;
     case 4:
-      handlesLine.setData([handlesData]);
+      cpuDonuts.setData(cpus);
       break;
     case 5:
-      gcCounts.setData(gcCountData);
+      handlesLine.setData([handlesData]);
       break;
     case 6:
+      gcCounts.setData(gcCountData);
+      break;
+    case 7:
       gcDuration.setData([gcDurationData]);
       break;
   }
@@ -265,6 +304,14 @@ const eventLoopLine = contrib.line({
   xLabelPadding: 3,
   xPadding: 5,
   label: 'Event Loop Delay',
+  showLegend: false,
+  legend: { width: 12 }
+} as any);
+
+const loopUtilHistogramLine = contrib.line({
+  xLabelPadding: 3,
+  xPadding: 5,
+  label: 'Event Loop Utilization (Histogram)',
   showLegend: false,
   legend: { width: 12 }
 } as any);
@@ -315,6 +362,7 @@ const carousel = new (contrib as any).carousel(  // eslint-disable-line
   [
     memoryPage,
     loopUtilizationPage,
+    loopUtilizationHistogramPage,
     eventLoopPage,
     cpuPage,
     handlesPage,
